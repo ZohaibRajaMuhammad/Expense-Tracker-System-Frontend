@@ -64,7 +64,7 @@ const Header = ({ onMenuToggle }) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); 
 
-      const response = await fetch('https://expense-tracker-backend-3lql.vercel.app/api/auth/profile', {
+      const response = await fetch('https://expense-tracker-system-backend.vercel.app/api/auth/profile', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { User, Upload, Eye, EyeOff, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
-const REGISTER_API_URL = 'https://expense-tracker-backend-3lql.vercel.app/api/auth/register';
+const REGISTER_API_URL = 'https://expense-tracker-system-backend.vercel.app/api/auth/register';
 
 const setCookie = (name, value, days = 7) => {
   const date = new Date();

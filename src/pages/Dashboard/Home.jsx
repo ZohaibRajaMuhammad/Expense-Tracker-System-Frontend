@@ -40,7 +40,7 @@ ChartJS.register(
   PointElement
 );
 
-const API_URL = 'https://expense-tracker-backend-3lql.vercel.app/api/dashboard';
+const API_URL = 'https://expense-tracker-system-backend.vercel.app/api/dashboard';
 
 const DashboardHome = () => {
   const [dashboardData, setDashboardData] = useState(null);

@@ -80,7 +80,7 @@ const IncomePage = () => {
     setError(null);
 
     try {
-      const response = await fetch('https://expense-tracker-backend-3lql.vercel.app/api/incomes', {
+      const response = await fetch('https://expense-tracker-system-backend.vercel.app/api/incomes', {
         method: 'GET',
         headers: headers,
       });
@@ -123,7 +123,7 @@ const IncomePage = () => {
     if (!headers) return null;
 
     try {
-      const response = await fetch(`https://expense-tracker-backend-3lql.vercel.app/api/incomes/${id}`, {
+      const response = await fetch(`https://expense-tracker-system-backend.vercel.app/api/incomes/${id}`, {
         method: 'GET',
         headers: headers,
       });
@@ -156,7 +156,7 @@ const IncomePage = () => {
     if (!headers) return;
 
     try {
-      const response = await fetch('https://expense-tracker-backend-3lql.vercel.app/api/incomes', {
+      const response = await fetch('https://expense-tracker-system-backend.vercel.app/api/incomes', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(newIncome),
@@ -186,7 +186,7 @@ const IncomePage = () => {
     if (!headers) return;
 
     try {
-      const response = await fetch(`https://expense-tracker-backend-3lql.vercel.app/api/incomes/${id}`, {
+      const response = await fetch(`https://expense-tracker-system-backend.vercel.app/api/incomes/${id}`, {
         method: 'PUT',
         headers: headers,
         body: JSON.stringify(updatedIncome),
@@ -219,7 +219,7 @@ const IncomePage = () => {
     if (!headers) return;
 
     try {
-      const response = await fetch(`https://expense-tracker-backend-3lql.vercel.app/api/incomes/${id}`, {
+      const response = await fetch(`https://expense-tracker-system-backend.vercel.app/api/incomes/${id}`, {
         method: 'DELETE',
         headers: headers,
       });

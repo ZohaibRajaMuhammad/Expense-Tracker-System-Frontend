@@ -19,7 +19,7 @@ const Login = () => {
 
     const from = location.state?.from?.pathname || '/dashboard';
 
-    const LOGIN_API_URL = 'https://expense-tracker-backend-3lql.vercel.app/api/auth/login';
+    const LOGIN_API_URL = 'https://expense-tracker-system-backend.vercel.app/api/auth/login';
 
     useEffect(() => {
         return () => {
