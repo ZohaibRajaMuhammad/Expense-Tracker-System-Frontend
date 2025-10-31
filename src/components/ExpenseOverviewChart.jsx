@@ -9,7 +9,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler, // Don't forget to import Filler for area charts
+  Filler, 
 } from 'chart.js';
 
 ChartJS.register(
@@ -20,7 +20,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler // Register Filler plugin
+  Filler 
 );
 
 const ExpenseOverviewChart = ({ chartData }) => {
@@ -57,14 +57,14 @@ const ExpenseOverviewChart = ({ chartData }) => {
           display: false,
         },
         ticks: {
-          color: '#6B7280', // Tailwind gray-500
+          color: '#6B7280',
         },
       },
       y: {
         beginAtZero: true,
         grid: {
           borderDash: [5, 5],
-          color: '#E5E7EB', // Tailwind gray-200
+          color: '#E5E7EB', 
         },
         ticks: {
           callback: function(value) {

@@ -159,10 +159,7 @@ const EditIncomeForm = ({ income, onClose, onUpdateIncome }) => {
           </button>
         </div>
         
-        {/* Temporary warning banner */}
-        <div className="warning-banner">
-          <p>⚠️ Using expense categories temporarily due to backend validation</p>
-        </div>
+      
         
         {error && (
           <div className="error-message">

@@ -19,7 +19,7 @@ const Login = () => {
 
     const from = location.state?.from?.pathname || '/dashboard';
 
-    const LOGIN_API_URL = 'https://expense-tracker-system-backend.vercel.app/api/auth/login';
+    const LOGIN_API_URL = 'http://localhost:5000/api/auth/login';
 
     useEffect(() => {
         return () => {
@@ -163,7 +163,6 @@ const Login = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
-                {/* Header */}
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center mb-4">
                         <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
@@ -176,14 +175,12 @@ const Login = () => {
                     <p className="text-gray-600 text-lg">Smart expense tracking for everyone</p>
                 </div>
 
-                {/* Login Card */}
                 <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
                     <div className="text-center mb-8">
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h2>
                         <p className="text-gray-500">Sign in to continue managing your finances</p>
                     </div>
 
-                    {/* Status Messages */}
                     {error && (
                         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3 animate-fade-in">
                             <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -205,9 +202,7 @@ const Login = () => {
                         </div>
                     )}
 
-                    {/* Login Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Email Field */}
                         <div className="space-y-2">
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                                 Email Address
@@ -237,7 +232,6 @@ const Login = () => {
                             )}
                         </div>
 
-                        {/* Password Field */}
                         <div className="space-y-2">
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                                 Password
@@ -276,7 +270,6 @@ const Login = () => {
                             )}
                         </div>
 
-                        {/* Forgot Password Link */}
                         <div className="text-right">
                             <Link 
                                 to="/forgot-password" 
@@ -286,7 +279,6 @@ const Login = () => {
                             </Link>
                         </div>
 
-                        {/* Login Button */}
                         <button
                             type="submit"
                             disabled={loading}
@@ -303,7 +295,6 @@ const Login = () => {
                         </button>
                     </form>
 
-                    {/* Sign Up Link */}
                     <div className="mt-6 text-center">
                         <p className="text-gray-600">
                             Don't have an account?{' '}
@@ -318,7 +309,6 @@ const Login = () => {
 
                     
 
-                    {/* Security Note */}
                     <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <p className="text-xs text-gray-500 text-center flex items-center justify-center space-x-1">
                             <span>🔒</span>
@@ -328,7 +318,6 @@ const Login = () => {
                 </div>
             </div>
 
-            {/* Add custom animations */}
             <style jsx="true">{`
                 @keyframes fade-in {
                     from { opacity: 0; transform: translateY(-10px); }

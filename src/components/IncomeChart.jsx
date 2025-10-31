@@ -2,11 +2,10 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const IncomeChart = ({ data }) => {
-  // Process data for the chart
   const chartData = data.map(item => ({
     date: item.date,
     amount: item.amount,
-    name: item.title // Using title for tooltip
+    name: item.title 
   }));
 
   return (

@@ -14,7 +14,7 @@ const IncomeSourceItem = ({ income, onDelete, onEdit }) => {
   return (
     <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow w-full">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-        {/* Content Section */}
+       
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <div className="flex-1 min-w-0">
@@ -24,7 +24,7 @@ const IncomeSourceItem = ({ income, onDelete, onEdit }) => {
               <p className="text-sm text-gray-600 mt-1">{income.category}</p>
             </div>
             
-            {/* Amount - Mobile first view */}
+            
             <div className="sm:hidden">
               <p className="text-lg font-bold text-green-600">
                 ${income.amount?.toLocaleString()}
@@ -43,16 +43,14 @@ const IncomeSourceItem = ({ income, onDelete, onEdit }) => {
           </p>
         </div>
 
-        {/* Actions and Amount Section */}
         <div className="flex flex-col sm:flex-col-reverse sm:items-end sm:justify-between sm:ml-4 sm:min-w-[120px]">
-          {/* Amount - Desktop view */}
+         
           <div className="hidden sm:block text-right">
             <p className="text-lg font-bold text-green-600">
               ${income.amount?.toLocaleString()}
             </p>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex justify-between sm:justify-end sm:space-x-3 sm:mt-2">
             <button
               onClick={handleEdit}

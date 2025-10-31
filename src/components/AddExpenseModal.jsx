@@ -19,7 +19,6 @@ const AddExpenseModal = ({ isOpen, onClose, onAddExpense }) => {
     { value: 'Other', icon: '❓', label: 'Other' }
   ];
 
-  // Close modal on escape key press
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -85,14 +84,14 @@ const AddExpenseModal = ({ isOpen, onClose, onAddExpense }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-200 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      {/* Backdrop click to close */}
+    
       <div 
         className="absolute inset-0" 
         onClick={onClose}
         aria-hidden="true"
       ></div>
       
-      {/* Modal container */}
+      
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-xl font-semibold text-gray-800">Add Expense</h3>

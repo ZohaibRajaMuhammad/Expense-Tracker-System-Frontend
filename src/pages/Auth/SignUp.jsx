@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { User, Upload, Eye, EyeOff, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
-const REGISTER_API_URL = 'https://expense-tracker-system-backend.vercel.app/api/auth/register';
+const REGISTER_API_URL = 'http://localhost:5000/api/auth/register';
+  
 
 const setCookie = (name, value, days = 7) => {
   const date = new Date();
@@ -384,7 +385,6 @@ const Signup = () => {
             <p className="text-gray-500">Join thousands managing their finances smarter</p>
           </div>
 
-          {/* Profile Image Upload - Optional */}
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div
@@ -417,7 +417,6 @@ const Signup = () => {
           </div>
           <p className="text-center text-sm text-gray-500 mb-6">Profile image </p>
 
-          {/* Status Messages */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start">
               <div className="w-2 h-2 bg-red-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
@@ -440,7 +439,6 @@ const Signup = () => {
             </div>
           )}
 
-          {/* Signup Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -575,10 +573,9 @@ const Signup = () => {
             </p>
           </div>
 
-          {/* Security Note */}
           <div className="mt-6 p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 text-center">
-              🔒 Your data is securely encrypted and protected
+               Your data is securely encrypted and protected
             </p>
           </div>
         </div>

@@ -7,7 +7,7 @@ import EditExpenseModal from '../../components/EditExpenseModal';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 
-const API_BASE_URL = 'https://expense-tracker-system-backend.vercel.app/api/expenses';
+const API_BASE_URL = 'http://localhost:5000/api/expenses';
 
 const ExpensePage = () => {
   const [expenses, setExpenses] = useState([]);

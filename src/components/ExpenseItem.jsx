@@ -4,7 +4,7 @@ const ExpenseItem = ({ expense, onDelete }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleDeleteClick = (e) => {
-    e.stopPropagation(); // Prevent any parent clicks
+    e.stopPropagation(); 
     if (window.confirm(`Are you sure you want to delete the expense for "${expense.category}"?`)) {
       onDelete(expense._id);
     }

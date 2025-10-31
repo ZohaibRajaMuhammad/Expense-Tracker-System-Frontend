@@ -64,7 +64,7 @@ const Sidebar = () => {
         return;
       }
 
-      const response = await fetch('https://expense-tracker-system-backend.vercel.app/api/auth/profile', {
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
