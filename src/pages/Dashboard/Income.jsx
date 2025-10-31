@@ -49,7 +49,6 @@ const IncomePage = () => {
     const userData = getUserData();
     if (userData) {
       setUser(userData);
-      // Only fetch incomes if user is authenticated
       fetchIncomes();
     } else {
       setLoading(false);
@@ -100,7 +99,6 @@ const IncomePage = () => {
 
       const data = await response.json();
       
-      // Ensure we're setting an array and filter out any demo/auto-generated data
       let incomeData = [];
       if (Array.isArray(data)) {
         incomeData = data;
@@ -108,7 +106,6 @@ const IncomePage = () => {
         incomeData = data.incomes;
       }
       
-      // Filter out any auto-generated or demo incomes
       const filteredIncomes = incomeData.filter(income => 
         income && 
         typeof income === 'object' && 
@@ -121,7 +118,7 @@ const IncomePage = () => {
     } catch (error) {
       console.error('Error fetching incomes:', error);
       setError('Failed to load income data. Please try again.');
-      setIncomes([]); // Set empty array on error
+      setIncomes([]);
     } finally {
       setLoading(false);
     }
@@ -175,6 +172,7 @@ const IncomePage = () => {
         const addedIncome = await response.json();
         setIncomes(prev => [...prev, addedIncome]);
         setIsModalOpen(false);
+        setError(null);
       } else if (response.status === 401) {
         console.error('Unauthorized (401) to add income.');
         setError('Session expired. Please log in again.');
@@ -207,6 +205,7 @@ const IncomePage = () => {
         ));
         setIsEditModalOpen(false);
         setEditingIncome(null);
+        setError(null);
       } else if (response.status === 401) {
         console.error('Unauthorized (401) to update income.');
         setError('Session expired. Please log in again.');
@@ -225,6 +224,10 @@ const IncomePage = () => {
     const headers = getAuthHeaders();
     if (!headers) return;
 
+    if (!window.confirm('Are you sure you want to delete this income source?')) {
+      return;
+    }
+
     try {
       const response = await fetch(`http://localhost:5000/api/incomes/${id}`, {
         method: 'DELETE',
@@ -233,6 +236,7 @@ const IncomePage = () => {
       
       if (response.ok) {
         setIncomes(prev => prev.filter(income => income._id !== id));
+        setError(null);
       } else if (response.status === 401) {
         console.error('Unauthorized (401) to delete income.');
         setError('Session expired. Please log in again.');
@@ -313,6 +317,17 @@ const IncomePage = () => {
     return '';
   };
 
+  const getCurrentMonthIncome = () => {
+    const now = new Date();
+    return incomes
+      .filter(inc => {
+        const incomeDate = new Date(inc.date);
+        return incomeDate.getMonth() === now.getMonth() && 
+               incomeDate.getFullYear() === now.getFullYear();
+      })
+      .reduce((sum, inc) => sum + (inc.amount || 0), 0);
+  };
+
   if (loading && !isEditModalOpen) {
     return (
       <div className="min-h-screen p-4 md:p-8 bg-gray-50 flex items-center justify-center ml-64">
@@ -356,6 +371,7 @@ const IncomePage = () => {
           </div>
         </div>
       </div>
+
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
           <div className="flex items-center">
@@ -372,17 +388,31 @@ const IncomePage = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Income Chart */}
         <div className="lg:col-span-1 p-6 bg-white rounded-xl shadow-lg">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Income Overview</h3>
-          <IncomeChart 
-            data={incomes.map(inc => ({ 
-              date: new Date(inc.date).toLocaleDateString(), 
-              amount: inc.amount,
-              source: inc.source 
-            }))} 
-          />
+          {incomes.length > 0 ? (
+            <IncomeChart 
+              data={incomes.map(inc => ({ 
+                date: new Date(inc.date).toLocaleDateString(), 
+                amount: inc.amount,
+                source: inc.source 
+              }))} 
+            />
+          ) : (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">📊</span>
+              </div>
+              <p className="text-gray-500">No data available for chart</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Add income sources to see visualization
+              </p>
+            </div>
+          )}
         </div>
         
+        {/* Income Sources List */}
         <div className="lg:col-span-1 p-6 bg-white rounded-xl shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Income Sources</h3>
@@ -422,6 +452,7 @@ const IncomePage = () => {
         </div>
       </div>
 
+      {/* Statistics */}
       {incomes.length > 0 && (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
@@ -431,26 +462,19 @@ const IncomePage = () => {
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
             <p className="text-sm text-gray-600">Average Income</p>
             <p className="text-2xl font-bold text-gray-800">
-              ${Math.round(totalIncome / incomes.length).toLocaleString()}
+              ${Math.round(totalIncome / Math.max(incomes.length, 1)).toLocaleString()}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
             <p className="text-sm text-gray-600">This Month</p>
             <p className="text-2xl font-bold text-gray-800">
-              ${incomes
-                .filter(inc => {
-                  const incomeDate = new Date(inc.date);
-                  const now = new Date();
-                  return incomeDate.getMonth() === now.getMonth() && 
-                         incomeDate.getFullYear() === now.getFullYear();
-                })
-                .reduce((sum, inc) => sum + inc.amount, 0)
-                .toLocaleString()}
+              ${getCurrentMonthIncome().toLocaleString()}
             </p>
           </div>
         </div>
       )}
 
+      {/* Add Income Modal */}
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
           <AddIncomeForm 
@@ -460,12 +484,15 @@ const IncomePage = () => {
         </Modal>
       )}
 
+      {/* Edit Income Modal */}
       {isEditModalOpen && editingIncome && (
-        <EditIncomeForm 
-          income={editingIncome}
-          onClose={handleCloseEditModal}
-          onUpdateIncome={handleUpdateIncome}
-        />
+        <Modal onClose={handleCloseEditModal}>
+          <EditIncomeForm 
+            income={editingIncome}
+            onClose={handleCloseEditModal}
+            onUpdateIncome={handleUpdateIncome}
+          />
+        </Modal>
       )}
     </div>
   );

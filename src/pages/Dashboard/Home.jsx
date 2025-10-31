@@ -14,7 +14,11 @@ import {
   FaBus,
   FaHeartbeat,
   FaGraduationCap,
-  FaGift
+  FaGift,
+  FaRobot,
+  FaLightbulb,
+  FaSyncAlt,
+  FaChartLine
 } from 'react-icons/fa';
 import {
   Chart as ChartJS,
@@ -29,6 +33,8 @@ import {
   PointElement,
 } from 'chart.js';
 import { Doughnut, Bar, Line } from 'react-chartjs-2';
+import AIInsights from '../../components/AIInsights';
+import AIManagement from '../../components/AIManagement';
 
 ChartJS.register(
   ArcElement,
@@ -190,6 +196,11 @@ const DashboardHome = () => {
             <div className="xl:col-span-2 space-y-6">
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* AI Insights Component */}
+                <div className="lg:col-span-2">
+                  <AIInsights />
+                </div>
+
                 {/* Income Distribution */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300">
                   <div className="flex justify-between items-center mb-6">
@@ -307,6 +318,9 @@ const DashboardHome = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* AI Management Component */}
+              <AIManagement />
+
               {/* Financial Overview */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300">
                 <div className="flex justify-between items-center mb-6">
@@ -332,28 +346,28 @@ const DashboardHome = () => {
                   <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                     <div className="flex items-center space-x-3">
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-gray-700">Total Income</span>
+                      <span className="text-sm font-medium text-gray-700">Monthly Income</span>
                     </div>
                     <span className="text-sm font-semibold text-gray-900">
-                      ${financialData.totalIncome.toLocaleString()}
+                      ${financialData.currentMonthIncome.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                     <div className="flex items-center space-x-3">
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-gray-700">Total Expenses</span>
+                      <span className="text-sm font-medium text-gray-700">Monthly Expenses</span>
                     </div>
                     <span className="text-sm font-semibold text-gray-900">
-                      ${financialData.totalExpenses.toLocaleString()}
+                      ${financialData.currentMonthExpense.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pt-2">
                     <div className="flex items-center space-x-3">
                       <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                      <span className="text-base font-semibold text-gray-900">Current Balance</span>
+                      <span className="text-base font-semibold text-gray-900">Monthly Savings</span>
                     </div>
-                    <span className={`text-base font-bold ${financialData.currentBalance >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                      ${Math.abs(financialData.currentBalance).toLocaleString()}
+                    <span className={`text-base font-bold ${financialData.currentMonthSavings >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                      ${Math.abs(financialData.currentMonthSavings).toLocaleString()}
                     </span>
                   </div>
                 </div>
