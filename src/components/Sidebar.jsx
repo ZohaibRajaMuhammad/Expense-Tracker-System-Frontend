@@ -98,7 +98,6 @@ const Sidebar = () => {
               document.cookie = `userProfileImage=${userData.profileImage}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
             }
           } else {
-            console.warn('User data missing required fields:', userData);
             setUser(getFallbackUserData());
           }
         } else {
@@ -125,7 +124,6 @@ const Sidebar = () => {
       }
       
     } catch (error) {
-      console.error('Error fetching user profile:', error);
       setUser(getFallbackUserData());
       
       if (error.message.includes('401') || error.message.includes('403')) {
@@ -223,7 +221,6 @@ const Sidebar = () => {
   };
 
   const handleImageError = (e) => {
-    console.warn('Profile image failed to load, showing fallback');
     e.target.style.display = 'none';
     const fallback = e.target.nextElementSibling;
     if (fallback) {

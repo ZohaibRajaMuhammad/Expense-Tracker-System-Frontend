@@ -10,24 +10,122 @@ import {
   FaChartPie,
   FaExclamationTriangle,
   FaCheckCircle,
-  FaInfoCircle
+  FaInfoCircle,
+  FaSync,
+  FaExclamationCircle
 } from 'react-icons/fa';
 
 const AIInsights = () => {
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+
+  const mockInsights = {
+    riskLevel: 'MEDIUM',
+    quickWins: [
+      {
+        title: 'Reduce Dining Out',
+        action: 'Cook at home 2 more times per week',
+        potentialSavings: '$160/month',
+        effort: 'LOW',
+        impact: 'HIGH'
+      },
+      {
+        title: 'Cancel Unused Subscriptions',
+        action: 'Review monthly subscriptions',
+        potentialSavings: '$45/month',
+        effort: 'LOW',
+        impact: 'MEDIUM'
+      }
+    ],
+    incomeTips: [
+      {
+        title: 'Diversify Income Streams',
+        message: 'Consider freelance work or side projects to increase monthly income',
+        priority: 'MEDIUM',
+        potentialImpact: 'HIGH',
+        action: 'Explore Options'
+      }
+    ],
+    expenseTips: [
+      {
+        title: 'Review Utility Bills',
+        message: 'Potential savings by optimizing electricity and internet plans',
+        priority: 'LOW',
+        potentialImpact: 'MEDIUM',
+        action: 'Compare Plans',
+        currentSpending: '$280/month'
+      }
+    ],
+    savingTips: [
+      {
+        title: 'Emergency Fund Boost',
+        message: 'Aim to save 3 months of expenses for financial security',
+        priority: 'HIGH',
+        potentialImpact: 'HIGH',
+        action: 'Set Goal',
+        target: '$15,000'
+      }
+    ],
+    analysis: [
+      {
+        aspect: 'Savings Rate',
+        message: 'Your savings rate is below recommended 20%',
+        details: 'Current rate: 15%. Consider increasing by reducing discretionary spending.',
+        status: 'WARNING'
+      },
+      {
+        aspect: 'Debt Management',
+        message: 'Healthy debt-to-income ratio',
+        details: 'Your ratio is 28%, which is within the recommended range.',
+        status: 'POSITIVE'
+      }
+    ],
+    monthlyProjection: {
+      projectedIncome: 4500,
+      projectedExpenses: 3820,
+      projectedSavings: 680,
+      confidence: '85%'
+    }
+  };
 
   const fetchInsights = async () => {
     setLoading(true);
+    setError(null);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('http://localhost:5000/api/ai/insights', {}, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000 
       });
-      setInsights(response.data.insights);
+      
+      if (response.data && response.data.insights) {
+        setInsights(response.data.insights);
+      } else {
+        throw new Error('Invalid response format from server');
+      }
     } catch (error) {
-      console.error('Failed to fetch insights:', error);
+      if (error.code === 'ECONNABORTED') {
+        setError('Request timeout - server is taking too long to respond');
+      } else if (error.response) {
+        if (error.response.status === 500) {
+          setError('Server error - please try again later or use demo data');
+        } else if (error.response.status === 401) {
+          setError('Authentication failed - please log in again');
+        } else {
+          setError(`Server error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
+        }
+      } else if (error.request) {
+        setError('Cannot connect to server - make sure backend is running on port 5000');
+      } else {
+        setError('Failed to fetch insights: ' + error.message);
+      }
+      
+      setInsights(mockInsights);
     } finally {
       setLoading(false);
     }
@@ -54,6 +152,38 @@ const AIInsights = () => {
     }
   };
 
+  if (error && !insights) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+        <FaExclamationCircle className="text-4xl text-red-500 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Unable to Load Insights</h3>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <div className="space-y-3">
+          <button
+            onClick={fetchInsights}
+            disabled={loading}
+            className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 font-medium disabled:opacity-50"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <FaSync className="animate-spin mr-2" />
+                Retrying...
+              </span>
+            ) : (
+              'Retry Connection'
+            )}
+          </button>
+          <button
+            onClick={() => setInsights(mockInsights)}
+            className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-300 font-medium"
+          >
+            Use Demo Data Instead
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!insights) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
@@ -67,7 +197,14 @@ const AIInsights = () => {
           disabled={loading}
           className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 font-medium disabled:opacity-50"
         >
-          {loading ? 'Analyzing Your Finances...' : 'Generate AI Insights'}
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <FaSync className="animate-spin mr-2" />
+              Analyzing Your Finances...
+            </span>
+          ) : (
+            'Generate AI Insights'
+          )}
         </button>
       </div>
     );
@@ -82,18 +219,30 @@ const AIInsights = () => {
             <FaLightbulb className="text-2xl text-yellow-500" />
             <div>
               <h2 className="text-xl font-semibold text-gray-900">AI Financial Advisor</h2>
-              <p className="text-gray-600 text-sm">Personalized insights based on your financial data</p>
+              <p className="text-gray-600 text-sm">
+                {error ? 'Demo Data - ' : ''}Personalized insights based on your financial data
+              </p>
             </div>
           </div>
-          <button
-            onClick={fetchInsights}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-          >
-            Refresh Insights
-          </button>
+          <div className="flex items-center space-x-2">
+            {error && (
+              <span className="text-sm text-red-600 bg-red-50 px-2 py-1 rounded-md">
+                Using Demo Data
+              </span>
+            )}
+            <button
+              onClick={fetchInsights}
+              disabled={loading}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 flex items-center space-x-2"
+            >
+              <FaSync className={loading ? 'animate-spin' : ''} />
+              <span>Refresh Insights</span>
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Rest of your existing JSX remains the same */}
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <div className="flex space-x-1 px-6">
@@ -210,6 +359,7 @@ const AIInsights = () => {
           </div>
         )}
 
+        {/* Other tabs remain exactly the same */}
         {/* Income Tips Tab */}
         {activeTab === 'income' && (
           <div className="space-y-4">

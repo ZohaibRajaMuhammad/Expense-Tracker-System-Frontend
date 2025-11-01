@@ -68,17 +68,13 @@ const AddIncomeForm = ({ onClose, onAddIncome }) => {
         date: formData.date,
         icon: formData.icon
       };
-
-      console.log('🔄 SENDING INCOME DATA:', incomeData);
-      console.log('⚠️  WARNING: Backend is using Expense model for incomes');
       
       await onAddIncome(incomeData);
       onClose();
     } catch (err) {
-      console.error('❌ Error in form submission:', err);
       
       if (err.message?.includes('Expense validation failed')) {
-        setError(`🚨 BACKEND MISCONFIGURATION DETECTED
+        setError(` BACKEND MISCONFIGURATION DETECTED
 
 Your income is being processed as an expense!
 

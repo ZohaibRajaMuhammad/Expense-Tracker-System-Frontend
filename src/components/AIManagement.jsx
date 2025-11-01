@@ -22,7 +22,6 @@ const AIManagement = () => {
     setMessage('');
     setLoading(true);
     
-    // Add user message to conversation
     setConversation(prev => [...prev, { 
       type: 'user', 
       content: userMessage,
@@ -41,7 +40,6 @@ const AIManagement = () => {
         }
       );
 
-      // Add AI response to conversation
       setConversation(prev => [...prev, { 
         type: 'ai', 
         content: response.data.message,
@@ -51,7 +49,6 @@ const AIManagement = () => {
       
       setShowQuickActions(false);
     } catch (error) {
-      console.error('AI Management error:', error);
       setConversation(prev => [...prev, { 
         type: 'ai', 
         content: 'Sorry, I encountered an error. Please try again.',

@@ -55,7 +55,6 @@ const getUserDataFromStorage = (): UserProfile => {
             parsed.name;
           
           if (hasValidData) {
-            console.log(' User data found in localStorage');
             return parsed;
           }
         }
@@ -78,7 +77,6 @@ const getUserDataFromStorage = (): UserProfile => {
             parsed.name;
           
           if (hasValidData) {
-            console.log(' User data found in sessionStorage');
             return parsed;
           }
         }
@@ -87,7 +85,6 @@ const getUserDataFromStorage = (): UserProfile => {
       }
     }
 
-    console.log(' No valid user data found in storage');
     return {};
   } catch (error) {
     console.error('Error getting user data from storage:', error);
@@ -148,7 +145,6 @@ const ProfilePage = () => {
   const [usingLocalData, setUsingLocalData] = useState(false);
 
   const loadDataFromStorage = () => {
-    console.log(' Loading data from storage...');
     
     const userData = getUserDataFromStorage();
     const image = getProfileImage();
@@ -156,12 +152,10 @@ const ProfilePage = () => {
     if (userData && Object.keys(userData).length > 0) {
       setProfile(userData);
       setUsingLocalData(true);
-      console.log(' Using locally stored user data:', userData);
     }
     
     if (image) {
       setProfileImage(image);
-      console.log(' Using locally stored profile image');
     }
     
     return { userData, image };
@@ -175,13 +169,11 @@ const ProfilePage = () => {
       const token = getTokenFromStorage();
       
       if (!token) {
-        console.log(' No token found in storage');
         setUsingLocalData(true);
         setIsLoading(false);
         return;
       }
 
-      console.log(' Fetching user profile with token');
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -197,17 +189,14 @@ const ProfilePage = () => {
 
       clearTimeout(timeoutId);
 
-      console.log('📨 Profile API response status:', response.status);
 
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem('token');
           sessionStorage.removeItem('token');
-          console.warn('🔄 Authentication failed, using local data');
           setUsingLocalData(true);
           return;
         } else if (response.status === 404) {
-          console.warn('🔄 Profile endpoint not found, using local data');
           setUsingLocalData(true);
           return;
         } else {
@@ -216,7 +205,6 @@ const ProfilePage = () => {
       }
 
       const result = await response.json();
-      console.log(' Full API response for ProfilePage:', result);
 
       if (result && typeof result === 'object') {
         let userData: UserProfile = {};
@@ -241,7 +229,6 @@ const ProfilePage = () => {
           
           try {
             localStorage.setItem('user', JSON.stringify(userData));
-            console.log('💾 Updated user data in localStorage');
           } catch (storageError) {
             console.warn('Could not update localStorage, using sessionStorage');
             sessionStorage.setItem('user', JSON.stringify(userData));
@@ -254,11 +241,9 @@ const ProfilePage = () => {
             }
           }
         } else {
-          console.warn(' API response missing required fields, using local data');
           setUsingLocalData(true);
         }
       } else {
-        console.warn(' Invalid API response format, using local data');
         setUsingLocalData(true);
       }
       
@@ -332,7 +317,6 @@ const ProfilePage = () => {
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.warn('Profile image failed to load, showing fallback');
     const target = e.target as HTMLImageElement;
     target.style.display = 'none';
     const fallback = target.nextElementSibling as HTMLElement;
@@ -400,7 +384,6 @@ const ProfilePage = () => {
         
         window.dispatchEvent(new Event('profileImageUpdated'));
         
-        console.log('✅ Profile image updated locally:', file.name);
         setError(null);
       };
       reader.readAsDataURL(file);
@@ -420,7 +403,6 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      console.log(' Storage changed, reloading data...');
       loadDataFromStorage();
     };
 

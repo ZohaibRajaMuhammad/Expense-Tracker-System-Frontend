@@ -144,13 +144,7 @@ const ExpensePage = () => {
       processChartData(response.data);
     } catch (error) {
       console.error('Error fetching expenses:', error);
-      const errorMessage = error.response?.status === 401 
-        ? 'Authentication failed. Please login again.'
-        : error.message === 'No authentication token found'
-        ? 'Please login to access your expenses.'
-        : 'Failed to fetch expenses. Please try again.';
-      
-      setError(errorMessage);
+
     } finally {
       setLoading(false);
     }
@@ -165,13 +159,6 @@ const ExpensePage = () => {
       return response.data;
     } catch (error) {
       console.error('Error fetching expense:', error);
-      const errorMessage = error.response?.status === 401 
-        ? 'Authentication failed. Please login again.'
-        : error.message === 'No authentication token found'
-        ? 'Please login to access expenses.'
-        : 'Failed to fetch expense. Please try again.';
-      
-      setError(errorMessage);
       throw error;
     }
   };
@@ -410,7 +397,6 @@ const ExpensePage = () => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
   };
 
-  // Calculate statistics based on filtered expenses
   const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
   const totalExpenseCount = filteredExpenses.length;
   

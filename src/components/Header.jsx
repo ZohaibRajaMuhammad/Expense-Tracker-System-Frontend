@@ -43,8 +43,8 @@ const Header = ({ onMenuToggle }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [profileImage, setProfileImage] = useState(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  // const [profileImage, setProfileImage] = useState(null);
+  // const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const fetchUserProfile = async () => {
     try {
@@ -54,12 +54,10 @@ const Header = ({ onMenuToggle }) => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        console.log('No token found in localStorage');
         setLoading(false);
         return;
       }
 
-      console.log('Fetching user profile with token:', token.substring(0, 20) + '...');
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); 
@@ -75,7 +73,6 @@ const Header = ({ onMenuToggle }) => {
 
       clearTimeout(timeoutId);
 
-      console.log('Profile API response status:', response.status);
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -92,12 +89,10 @@ const Header = ({ onMenuToggle }) => {
       }
 
       const result = await response.json();
-      console.log('Full API response:', result);
 
       if (result && typeof result === 'object') {
         if (result.success && result.data && typeof result.data === 'object') {
           const userData = result.data;
-          console.log('Extracted user data:', userData);
           
           const hasValidUserData = 
             userData.id || 
@@ -116,11 +111,9 @@ const Header = ({ onMenuToggle }) => {
               document.cookie = `userProfileImage=${userData.profileImage}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
             }
           } else {
-            console.warn('User data missing required fields:', userData);
             throw new Error('User data missing required identification fields');
           }
         } else {
-          console.warn('Unexpected API response structure, trying to use response directly');
           const hasValidData = 
             result.id || 
             result._id || 
@@ -146,7 +139,6 @@ const Header = ({ onMenuToggle }) => {
       }
       
     } catch (error) {
-      console.error('Error fetching user profile:', error);
       
       if (error.name === 'AbortError') {
         setError('Request timeout - please check your connection');
@@ -247,50 +239,49 @@ const Header = ({ onMenuToggle }) => {
     };
   }, [user]);
 
-  const getDisplayName = () => {
-    const currentUser = user || getFallbackUserData();
+  // const getDisplayName = () => {
+  //   const currentUser = user || getFallbackUserData();
     
-    if (!currentUser) return 'Welcome Guest';
+  //   if (!currentUser) return 'Welcome Guest';
     
-    if (currentUser.firstName && currentUser.lastName) {
-      return isMobile ? `${currentUser.firstName} ${currentUser.lastName.charAt(0)}.` : `${currentUser.firstName} ${currentUser.lastName}`;
-    } else if (currentUser.firstName) {
-      return currentUser.firstName;
-    } else if (currentUser.name) {
-      return isMobile && currentUser.name.length > 12 ? `${currentUser.name.substring(0, 10)}...` : currentUser.name;
-    } else if (currentUser.username) {
-      return isMobile && currentUser.username.length > 12 ? `${currentUser.username.substring(0, 10)}...` : currentUser.username;
-    } else if (currentUser.email) {
-      const username = currentUser.email.split('@')[0];
-      return isMobile && username.length > 12 ? `${username.substring(0, 10)}...` : username;
-    } else {
-      return 'User';
-    }
-  };
+  //   if (currentUser.firstName && currentUser.lastName) {
+  //     return isMobile ? `${currentUser.firstName} ${currentUser.lastName.charAt(0)}.` : `${currentUser.firstName} ${currentUser.lastName}`;
+  //   } else if (currentUser.firstName) {
+  //     return currentUser.firstName;
+  //   } else if (currentUser.name) {
+  //     return isMobile && currentUser.name.length > 12 ? `${currentUser.name.substring(0, 10)}...` : currentUser.name;
+  //   } else if (currentUser.username) {
+  //     return isMobile && currentUser.username.length > 12 ? `${currentUser.username.substring(0, 10)}...` : currentUser.username;
+  //   } else if (currentUser.email) {
+  //     const username = currentUser.email.split('@')[0];
+  //     return isMobile && username.length > 12 ? `${username.substring(0, 10)}...` : username;
+  //   } else {
+  //     return 'User';
+  //   }
+  // };
 
-  const getUserStatus = () => {
-    const currentUser = user || getFallbackUserData();
+  // const getUserStatus = () => {
+  //   const currentUser = user || getFallbackUserData();
     
-    if (!currentUser) return 'Not logged in';
+  //   if (!currentUser) return 'Not logged in';
     
-    return 'Active';
-  };
+  //   return 'Active';
+  // };
 
-  const handleImageError = (e) => {
-    console.warn('Profile image failed to load, showing fallback');
-    e.target.style.display = 'none';
-    const fallback = e.target.nextElementSibling;
-    if (fallback) {
-      fallback.style.display = 'flex';
-    }
-  };
+  // const handleImageError = (e) => {
+  //   e.target.style.display = 'none';
+  //   const fallback = e.target.nextElementSibling;
+  //   if (fallback) {
+  //     fallback.style.display = 'flex';
+  //   }
+  // };
 
-  const handleImageLoad = (e) => {
-    const fallback = e.target.nextElementSibling;
-    if (fallback) {
-      fallback.style.display = 'none';
-    }
-  };
+  // const handleImageLoad = (e) => {
+  //   const fallback = e.target.nextElementSibling;
+  //   if (fallback) {
+  //     fallback.style.display = 'none';
+  //   }
+  // };
 
   const handleRetry = () => {
     fetchUserProfile();

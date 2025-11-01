@@ -30,7 +30,6 @@ const AddExpenseModal = ({ isOpen, onClose, onAddExpense }) => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';

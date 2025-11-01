@@ -64,7 +64,6 @@ const IncomePage = () => {
     }
   }, [navigate]);
 
-  // Extract unique categories when incomes change
   useEffect(() => {
     const categories = [...new Set(incomes
       .map(income => income.category)
@@ -73,11 +72,9 @@ const IncomePage = () => {
     setAvailableCategories(categories);
   }, [incomes]);
 
-  // Filter incomes based on search term, month, and category
   useEffect(() => {
     let filtered = incomes;
 
-    // Apply search term filter
     if (searchTerm.trim() !== '') {
       filtered = filtered.filter(income =>
         income.source?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -87,7 +84,6 @@ const IncomePage = () => {
       );
     }
 
-    // Apply month filter
     if (monthFilter) {
       filtered = filtered.filter(income => {
         const incomeDate = new Date(income.date);
@@ -96,7 +92,6 @@ const IncomePage = () => {
       });
     }
 
-    // Apply category filter
     if (categoryFilter) {
       filtered = filtered.filter(income => income.category === categoryFilter);
     }
@@ -107,7 +102,6 @@ const IncomePage = () => {
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      console.error('Authentication token not found. Please log in.');
       setError('Please log in to access this page');
       navigate('/login');
       return null;
@@ -132,7 +126,6 @@ const IncomePage = () => {
       });
       
       if (response.status === 401) {
-        console.error('Unauthorized (401). Token invalid or expired.');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setError('Session expired. Please log in again.');
@@ -182,7 +175,6 @@ const IncomePage = () => {
       });
       
       if (response.status === 401) {
-        console.error('Unauthorized (401). Token invalid or expired.');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setError('Session expired. Please log in again.');
@@ -221,7 +213,6 @@ const IncomePage = () => {
         setIsModalOpen(false);
         setError(null);
       } else if (response.status === 401) {
-        console.error('Unauthorized (401) to add income.');
         setError('Session expired. Please log in again.');
         navigate('/login');
       } else {
@@ -254,7 +245,6 @@ const IncomePage = () => {
         setEditingIncome(null);
         setError(null);
       } else if (response.status === 401) {
-        console.error('Unauthorized (401) to update income.');
         setError('Session expired. Please log in again.');
         navigate('/login');
       } else {
@@ -285,7 +275,6 @@ const IncomePage = () => {
         setIncomes(prev => prev.filter(income => income._id !== id));
         setError(null);
       } else if (response.status === 401) {
-        console.error('Unauthorized (401) to delete income.');
         setError('Session expired. Please log in again.');
         navigate('/login');
       } else {
@@ -438,10 +427,13 @@ const IncomePage = () => {
             <button 
               onClick={downloadIncomesAsExcel}
               disabled={filteredIncomes.length === 0}
-              className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Download Excel
-            </button>
+                  className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 text-sm flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Export Excel
+                </button>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition duration-150"

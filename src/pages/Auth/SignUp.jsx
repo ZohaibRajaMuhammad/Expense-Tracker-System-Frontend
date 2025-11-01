@@ -35,7 +35,6 @@ const safeSetItem = (key, value) => {
   try {
     const valueSize = new Blob([value]).size;
     if (valueSize > 4 * 1024 * 1024) {
-      console.warn(`Value for ${key} is too large (${valueSize} bytes), skipping localStorage`);
       return false;
     }
     
@@ -43,7 +42,6 @@ const safeSetItem = (key, value) => {
     return true;
   } catch (error) {
     if (error.name === 'QuotaExceededError') {
-      console.warn('localStorage quota exceeded, clearing some space...');
       clearTemporaryStorage();
       try {
         localStorage.setItem(key, value);
@@ -53,7 +51,6 @@ const safeSetItem = (key, value) => {
         return false;
       }
     }
-    console.error('localStorage error:', error);
     return false;
   }
 };
@@ -120,10 +117,6 @@ const Signup = () => {
       try {
         const base64Image = await fileToBase64(file);
         
-        const stored = safeSetItem('userProfileImage_temp', base64Image);
-        if (!stored) {
-          console.warn('Could not store image in localStorage, using session only');
-        }
         
         if (base64Image.length < 4000) { 
           setCookie('userProfileImage', base64Image, 7); 
@@ -208,7 +201,6 @@ const Signup = () => {
 
       const stored = safeSetItem('user', JSON.stringify(essentialUserData));
       if (!stored) {
-        console.warn('Failed to store user data in localStorage');
         sessionStorage.setItem('user', JSON.stringify(essentialUserData));
       }
 
@@ -244,26 +236,13 @@ const Signup = () => {
         formData.append('profileImage', form.profileImage);
       }
 
-      console.log(' Sending payload to backend:');
-      for (let [key, value] of formData.entries()) {
-        if (key === 'password' || key === 'confirmPassword') {
-          console.log(`- ${key}: [HIDDEN]`);
-        } else if (key === 'profileImage') {
-          console.log(`- ${key}:`, value.name);
-        } else {
-          console.log(`- ${key}:`, value);
-        }
-      }
 
       const response = await fetchWithTimeout(REGISTER_API_URL, {
         method: 'POST',
         body: formData,
       });
 
-      console.log('📨 Response status:', response.status, response.statusText);
-
       const responseText = await response.text();
-      console.log('📄 Raw response:', responseText);
 
       let data;
       try {
@@ -274,12 +253,9 @@ const Signup = () => {
       }
 
       if (!response.ok) {
-        console.error(' Backend error:', data);
         const errorMessage = data.message || data.error || data.msg || `Registration failed (${response.status})`;
         throw new Error(errorMessage);
       }
-
-      console.log('Registration successful:', data);
 
       const userData = {
         token: data.token,
@@ -293,7 +269,7 @@ const Signup = () => {
       const storageSuccess = storeUserDataSafely(userData);
       
       if (!storageSuccess) {
-        console.warn('User data storage had issues, but registration was successful');
+        // console.warn('User data storage had issues, but registration was successful');
       }
 
       
@@ -301,7 +277,7 @@ const Signup = () => {
         setCookie('userProfileImage', userData.profileImage, 7);
       }
 
-      setSuccess('Registration successful! Redirecting to dashboard...');
+      setSuccess('Registration successful! Redirecting to Login');
       setTimeout(() => navigate('/dashboard'), 2000);
 
     } catch (err) {

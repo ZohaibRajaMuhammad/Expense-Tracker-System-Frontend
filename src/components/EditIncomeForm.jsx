@@ -12,8 +12,6 @@ const EditIncomeForm = ({ income, onClose, onUpdateIncome }) => {
   const [error, setError] = useState('');
   const [touched, setTouched] = useState({});
 
-  // TEMPORARY FIX: Use expense categories since backend is using expense validation
-  // Replace with actual income categories once backend is fixed
   const expenseCategories = [
     'Food',
     'Transportation',
@@ -26,7 +24,6 @@ const EditIncomeForm = ({ income, onClose, onUpdateIncome }) => {
     'Other'
   ];
 
-  // Map original income categories to valid expense categories for display
   const categoryMapping = {
     'Salary': 'Other',
     'Freelance': 'Other',
@@ -38,11 +35,9 @@ const EditIncomeForm = ({ income, onClose, onUpdateIncome }) => {
 
   useEffect(() => {
     if (income) {
-      // Format date for input field (YYYY-MM-DD)
       const date = new Date(income.date);
       const formattedDate = date.toISOString().split('T')[0];
       
-      // Map the existing category to a valid expense category
       const mappedCategory = categoryMapping[income.category] || 'Other';
       
       setFormData({
@@ -98,7 +93,6 @@ const EditIncomeForm = ({ income, onClose, onUpdateIncome }) => {
     setLoading(true);
     setError('');
 
-    // Mark all fields as touched
     setTouched({
       source: true,
       amount: true,
@@ -120,17 +114,14 @@ const EditIncomeForm = ({ income, onClose, onUpdateIncome }) => {
         source: formData.source.trim(),
         amount: parseFloat(formData.amount),
         date: formData.date,
-        category: formData.category, // Already using valid expense category
+        category: formData.category, 
         description: formData.description.trim()
       };
 
-      console.log('Updating income with:', updateData);
       
       await onUpdateIncome(updateData);
-      onClose(); // Close form on success
+      onClose(); 
     } catch (err) {
-      console.error('Update error:', err);
-      // Provide more specific error message for category issues
       if (err.message.includes('category') && err.message.includes('not a valid enum value')) {
         setError('Category validation error. Please select a valid category from the list.');
       } else {
