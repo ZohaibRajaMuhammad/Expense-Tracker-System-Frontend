@@ -100,23 +100,13 @@ Permanent Fix Needed:
   const commonEmojis = ['💰', '💵', '💳', '🏦', '💼', '👔', '💻', '📈', '🎁', '✨'];
 
   return (
-    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-auto shadow-lg">
+    <div className="w-full max-w-md mx-auto ">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-800">Add New Income</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 text-2xl"
-        >
-          ×
-        </button>
+        
       </div>
 
-      {/* Backend Warning */}
-      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <p className="text-yellow-700 text-sm">
-          ⚠️ <strong>Backend Issue:</strong> Currently using expense categories due to backend misconfiguration.
-        </p>
-      </div>
+    
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -216,9 +206,6 @@ Permanent Fix Needed:
               </option>
             ))}
           </select>
-          <p className="text-xs text-yellow-600 mt-1">
-            ⚠️ Temporary: Using expense categories until backend is fixed
-          </p>
         </div>
 
         <div>
