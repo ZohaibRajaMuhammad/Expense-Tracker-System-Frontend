@@ -19,6 +19,11 @@ const IncomePage = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  // New state for filters
+  const [monthFilter, setMonthFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [availableCategories, setAvailableCategories] = useState([]);
+
   const getUserData = () => {
     try {
       const userData = localStorage.getItem('user');
@@ -59,20 +64,45 @@ const IncomePage = () => {
     }
   }, [navigate]);
 
-  // Filter incomes based on search term
+  // Extract unique categories when incomes change
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredIncomes(incomes);
-    } else {
-      const filtered = incomes.filter(income =>
+    const categories = [...new Set(incomes
+      .map(income => income.category)
+      .filter(category => category && category.trim() !== '')
+    )].sort();
+    setAvailableCategories(categories);
+  }, [incomes]);
+
+  // Filter incomes based on search term, month, and category
+  useEffect(() => {
+    let filtered = incomes;
+
+    // Apply search term filter
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(income =>
         income.source?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         income.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         income.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         income.amount?.toString().includes(searchTerm)
       );
-      setFilteredIncomes(filtered);
     }
-  }, [incomes, searchTerm]);
+
+    // Apply month filter
+    if (monthFilter) {
+      filtered = filtered.filter(income => {
+        const incomeDate = new Date(income.date);
+        const incomeMonth = `${incomeDate.getFullYear()}-${String(incomeDate.getMonth() + 1).padStart(2, '0')}`;
+        return incomeMonth === monthFilter;
+      });
+    }
+
+    // Apply category filter
+    if (categoryFilter) {
+      filtered = filtered.filter(income => income.category === categoryFilter);
+    }
+
+    setFilteredIncomes(filtered);
+  }, [incomes, searchTerm, monthFilter, categoryFilter]);
   
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -131,13 +161,11 @@ const IncomePage = () => {
       );
       
       setIncomes(filteredIncomes);
-      setFilteredIncomes(filteredIncomes);
       
     } catch (error) {
       console.error('Error fetching incomes:', error);
       setError('Failed to load income data. Please try again.');
       setIncomes([]);
-      setFilteredIncomes([]);
     } finally {
       setLoading(false);
     }
@@ -297,7 +325,7 @@ const IncomePage = () => {
   };
   
   const downloadIncomesAsExcel = () => {
-    const dataToDownload = searchTerm ? filteredIncomes : incomes;
+    const dataToDownload = filteredIncomes;
     
     if (dataToDownload.length === 0) {
       setError('No income data available to download');
@@ -327,6 +355,19 @@ const IncomePage = () => {
     }
   };
 
+  // Generate available months from incomes
+  const getAvailableMonths = () => {
+    const monthsSet = new Set();
+    incomes.forEach(income => {
+      const date = new Date(income.date);
+      const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      monthsSet.add(month);
+    });
+    return Array.from(monthsSet).sort().reverse();
+  };
+
+  const availableMonths = getAvailableMonths();
+
   const totalIncome = incomes.reduce((sum, income) => sum + (income.amount || 0), 0);
   const filteredTotalIncome = filteredIncomes.reduce((sum, income) => sum + (income.amount || 0), 0);
 
@@ -343,17 +384,6 @@ const IncomePage = () => {
     return '';
   };
 
-  const getCurrentMonthIncome = () => {
-    const now = new Date();
-    return incomes
-      .filter(inc => {
-        const incomeDate = new Date(inc.date);
-        return incomeDate.getMonth() === now.getMonth() && 
-               incomeDate.getFullYear() === now.getFullYear();
-      })
-      .reduce((sum, inc) => sum + (inc.amount || 0), 0);
-  };
-
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -361,6 +391,22 @@ const IncomePage = () => {
   const clearSearch = () => {
     setSearchTerm('');
   };
+
+  const clearMonthFilter = () => {
+    setMonthFilter('');
+  };
+
+  const clearCategoryFilter = () => {
+    setCategoryFilter('');
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setMonthFilter('');
+    setCategoryFilter('');
+  };
+
+  const hasActiveFilters = searchTerm || monthFilter || categoryFilter;
 
   if (loading && !isEditModalOpen) {
     return (
@@ -391,7 +437,7 @@ const IncomePage = () => {
           <div className="flex space-x-3 mt-4 sm:mt-0">
             <button 
               onClick={downloadIncomesAsExcel}
-              disabled={incomes.length === 0}
+              disabled={filteredIncomes.length === 0}
               className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Download Excel
@@ -421,8 +467,9 @@ const IncomePage = () => {
         </div>
       )}
 
-      {/* Search Bar */}
-      <div className="mb-6">
+      {/* Filters Section */}
+      <div className="mb-6 space-y-4">
+        {/* Search Bar */}
         <div className="relative max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -447,11 +494,112 @@ const IncomePage = () => {
             </button>
           )}
         </div>
-        {searchTerm && (
-          <p className="text-sm text-gray-600 mt-2">
-            Showing {filteredIncomes.length} of {incomes.length} income sources
-            {filteredIncomes.length > 0 && ` • Filtered total: $${filteredTotalIncome.toLocaleString()}`}
-          </p>
+
+        {/* Month and Category Filters */}
+        <div className="flex flex-wrap gap-4">
+          {/* Month Filter */}
+          <div className="flex items-center space-x-2">
+            <label htmlFor="monthFilter" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              Filter by Month:
+            </label>
+            <div className="relative">
+              <select
+                id="monthFilter"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+                className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">All Months</option>
+                {availableMonths.map(month => {
+                  const [year, monthNum] = month.split('-');
+                  const monthName = new Date(parseInt(year), parseInt(monthNum) - 1).toLocaleDateString('en-US', {
+                    month: 'long',
+                    year: 'numeric'
+                  });
+                  return (
+                    <option key={month} value={month}>
+                      {monthName}
+                    </option>
+                  );
+                })}
+              </select>
+              {monthFilter && (
+                <button
+                  onClick={clearMonthFilter}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex items-center space-x-2">
+            <label htmlFor="categoryFilter" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              Filter by Category:
+            </label>
+            <div className="relative">
+              <select
+                id="categoryFilter"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">All Categories</option>
+                {availableCategories.map(category => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              {categoryFilter && (
+                <button
+                  onClick={clearCategoryFilter}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Clear All Filters Button */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-150"
+            >
+              Clear All Filters
+            </button>
+          )}
+        </div>
+
+        {/* Filter Summary */}
+        {hasActiveFilters && (
+          <div className="flex items-center space-x-4 text-sm text-gray-600">
+            <span>
+              Showing {filteredIncomes.length} of {incomes.length} income sources
+            </span>
+            {filteredIncomes.length > 0 && (
+              <span>• Filtered total: ${filteredTotalIncome.toLocaleString()}</span>
+            )}
+            {monthFilter && (
+              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                Month: {new Date(monthFilter + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </span>
+            )}
+            {categoryFilter && (
+              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                Category: {categoryFilter}
+              </span>
+            )}
+            {searchTerm && (
+              <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
+                Search: "{searchTerm}"
+              </span>
+            )}
+          </div>
         )}
       </div>
 
@@ -473,10 +621,10 @@ const IncomePage = () => {
                 <span className="text-2xl">📊</span>
               </div>
               <p className="text-gray-500">
-                {searchTerm ? 'No matching income sources found' : 'No data available for chart'}
+                {hasActiveFilters ? 'No matching income sources found' : 'No data available for chart'}
               </p>
               <p className="text-sm text-gray-400 mt-1">
-                {searchTerm ? 'Try adjusting your search terms' : 'Add income sources to see visualization'}
+                {hasActiveFilters ? 'Try adjusting your filters' : 'Add income sources to see visualization'}
               </p>
             </div>
           )}
@@ -488,7 +636,7 @@ const IncomePage = () => {
             <h3 className="text-lg font-semibold text-gray-800">Income Sources</h3>
             <span className="text-sm text-gray-500">
               {filteredIncomes.length} source{filteredIncomes.length !== 1 ? 's' : ''}
-              {searchTerm && ` (of ${incomes.length})`}
+              {hasActiveFilters && ` (of ${incomes.length})`}
             </span>
           </div>
           
@@ -508,12 +656,12 @@ const IncomePage = () => {
                   <span className="text-2xl">💰</span>
                 </div>
                 <p className="text-gray-500 mb-2">
-                  {searchTerm ? 'No income sources found' : 'No income sources yet'}
+                  {hasActiveFilters ? 'No income sources found' : 'No income sources yet'}
                 </p>
                 <p className="text-sm text-gray-400">
-                  {searchTerm ? 'Try different search terms' : 'Add your first income source to get started'}
+                  {hasActiveFilters ? 'Try adjusting your filters' : 'Add your first income source to get started'}
                 </p>
-                {!searchTerm && (
+                {!hasActiveFilters && (
                   <button 
                     onClick={() => setIsModalOpen(true)}
                     className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
@@ -521,12 +669,12 @@ const IncomePage = () => {
                     + Add Income Source
                   </button>
                 )}
-                {searchTerm && (
+                {hasActiveFilters && (
                   <button 
-                    onClick={clearSearch}
+                    onClick={clearAllFilters}
                     className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
                   >
-                    Clear Search
+                    Clear All Filters
                   </button>
                 )}
               </div>
@@ -540,20 +688,20 @@ const IncomePage = () => {
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
             <p className="text-sm text-gray-600">
-              {searchTerm ? 'Filtered Sources' : 'Total Sources'}
+              {hasActiveFilters ? 'Filtered Sources' : 'Total Sources'}
             </p>
             <p className="text-2xl font-bold text-gray-800">
-              {searchTerm ? filteredIncomes.length : incomes.length}
-              {searchTerm && <span className="text-sm font-normal text-gray-500 ml-1">/ {incomes.length}</span>}
+              {hasActiveFilters ? filteredIncomes.length : incomes.length}
+              {hasActiveFilters && <span className="text-sm font-normal text-gray-500 ml-1">/ {incomes.length}</span>}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
             <p className="text-sm text-gray-600">
-              {searchTerm ? 'Filtered Total' : 'Total Income'}
+              {hasActiveFilters ? 'Filtered Total' : 'Total Income'}
             </p>
             <p className="text-2xl font-bold text-gray-800">
-              ${(searchTerm ? filteredTotalIncome : totalIncome).toLocaleString()}
-              {searchTerm && totalIncome !== filteredTotalIncome && (
+              ${(hasActiveFilters ? filteredTotalIncome : totalIncome).toLocaleString()}
+              {hasActiveFilters && totalIncome !== filteredTotalIncome && (
                 <span className="text-sm font-normal text-gray-500 ml-1">
                   of ${totalIncome.toLocaleString()}
                 </span>
@@ -575,13 +723,11 @@ const IncomePage = () => {
 
       {/* Edit Income Modal */}
       {isEditModalOpen && editingIncome && (
-        // <Modal onClose={handleCloseEditModal}>
-          <EditIncomeForm 
-            income={editingIncome}
-            onClose={handleCloseEditModal}
-            onUpdateIncome={handleUpdateIncome}
-          />
-        // </Modal>
+        <EditIncomeForm 
+          income={editingIncome}
+          onClose={handleCloseEditModal}
+          onUpdateIncome={handleUpdateIncome}
+        />
       )}
     </div>
   );

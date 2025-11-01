@@ -22,6 +22,10 @@ const ExpensePage = () => {
   const [success, setSuccess] = useState(null);
   const [hoveredExpenseId, setHoveredExpenseId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [availableCategories, setAvailableCategories] = useState([]);
+  const [availableMonths, setAvailableMonths] = useState([]);
 
   const getSafeUserData = useCallback(() => {
     try {
@@ -58,20 +62,53 @@ const ExpensePage = () => {
     fetchExpenses();
   }, [getSafeUserData]);
 
-  // Filter expenses based on search term
+  // Extract available categories and months from expenses
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredExpenses(expenses);
-    } else {
-      const filtered = expenses.filter(expense =>
+    if (expenses.length > 0) {
+      // Get unique categories
+      const categories = [...new Set(expenses.map(expense => expense.category).filter(Boolean))].sort();
+      setAvailableCategories(categories);
+
+      // Get unique months in YYYY-MM format
+      const months = [...new Set(expenses.map(expense => {
+        const date = new Date(expense.date);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      }))].sort().reverse(); // Sort descending to show recent months first
+      
+      setAvailableMonths(months);
+    }
+  }, [expenses]);
+
+  // Filter expenses based on search term, month, and category
+  useEffect(() => {
+    let filtered = expenses;
+
+    // Apply search filter
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(expense =>
         expense.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         expense.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         expense.amount?.toString().includes(searchTerm) ||
         new Date(expense.date).toLocaleDateString().toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredExpenses(filtered);
     }
-  }, [searchTerm, expenses]);
+
+    // Apply month filter
+    if (selectedMonth) {
+      filtered = filtered.filter(expense => {
+        const expenseDate = new Date(expense.date);
+        const expenseMonth = `${expenseDate.getFullYear()}-${String(expenseDate.getMonth() + 1).padStart(2, '0')}`;
+        return expenseMonth === selectedMonth;
+      });
+    }
+
+    // Apply category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(expense => expense.category === selectedCategory);
+    }
+
+    setFilteredExpenses(filtered);
+  }, [searchTerm, selectedMonth, selectedCategory, expenses]);
 
   const getAuthHeaders = useCallback(() => {
     try {
@@ -104,7 +141,6 @@ const ExpensePage = () => {
       });
       
       setExpenses(response.data);
-      setFilteredExpenses(response.data);
       processChartData(response.data);
     } catch (error) {
       console.error('Error fetching expenses:', error);
@@ -293,7 +329,7 @@ const ExpensePage = () => {
   };
 
   const downloadExpensesAsExcel = () => {
-    const expensesToDownload = searchTerm ? filteredExpenses : expenses;
+    const expensesToDownload = filteredExpenses;
     
     if (expensesToDownload.length === 0) {
       setError('No expenses to download');
@@ -361,6 +397,19 @@ const ExpensePage = () => {
     setSearchTerm('');
   };
 
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSelectedMonth('');
+    setSelectedCategory('');
+  };
+
+  const formatMonthDisplay = (monthString) => {
+    if (!monthString) return '';
+    const [year, month] = monthString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  };
+
   // Calculate statistics based on filtered expenses
   const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
   const totalExpenseCount = filteredExpenses.length;
@@ -382,6 +431,9 @@ const ExpensePage = () => {
   const handleExpenseMouseLeave = () => {
     setHoveredExpenseId(null);
   };
+
+  // Check if any filters are active
+  const isFilterActive = searchTerm || selectedMonth || selectedCategory;
 
   if (loading) {
     return (
@@ -535,7 +587,10 @@ const ExpensePage = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">All Expenses</h3>
                 <p className="text-gray-600 text-sm mt-1">
-                  {searchTerm ? `Showing ${filteredExpenses.length} of ${expenses.length} expenses` : `Total ${expenses.length} expenses`}
+                  {isFilterActive 
+                    ? `Showing ${filteredExpenses.length} of ${expenses.length} expenses` 
+                    : `Total ${expenses.length} expenses`
+                  }
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -568,7 +623,7 @@ const ExpensePage = () => {
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-gray-500 whitespace-nowrap">
                     {filteredExpenses.length} expense{filteredExpenses.length !== 1 ? 's' : ''} 
-                    {searchTerm && ' found'}
+                    {isFilterActive && ' found'}
                   </span>
                   {filteredExpenses.length > 0 && (
                     <div className="text-sm text-gray-500 whitespace-nowrap">
@@ -578,6 +633,101 @@ const ExpensePage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Filter Controls */}
+            <div className="mt-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              {/* Month Filter */}
+              <div className="flex items-center gap-2">
+                <label htmlFor="month-filter" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Filter by Month:
+                </label>
+                <select
+                  id="month-filter"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                >
+                  <option value="">All Months</option>
+                  {availableMonths.map(month => (
+                    <option key={month} value={month}>
+                      {formatMonthDisplay(month)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Category Filter */}
+              <div className="flex items-center gap-2">
+                <label htmlFor="category-filter" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Filter by Category:
+                </label>
+                <select
+                  id="category-filter"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                >
+                  <option value="">All Categories</option>
+                  {availableCategories.map(category => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Clear Filters Button */}
+              {isFilterActive && (
+                <button
+                  onClick={clearAllFilters}
+                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Clear Filters
+                </button>
+              )}
+            </div>
+
+            {/* Active Filters Display */}
+            {isFilterActive && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {searchTerm && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    Search: "{searchTerm}"
+                    <button 
+                      onClick={clearSearch}
+                      className="ml-1 hover:text-purple-900"
+                    >
+                      ×
+                    </button>
+                  </span>
+                )}
+                {selectedMonth && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    Month: {formatMonthDisplay(selectedMonth)}
+                    <button 
+                      onClick={() => setSelectedMonth('')}
+                      className="ml-1 hover:text-blue-900"
+                    >
+                      ×
+                    </button>
+                  </span>
+                )}
+                {selectedCategory && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Category: {selectedCategory}
+                    <button 
+                      onClick={() => setSelectedCategory('')}
+                      className="ml-1 hover:text-green-900"
+                    >
+                      ×
+                    </button>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           
           <div className="p-6">
@@ -614,7 +764,7 @@ const ExpensePage = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                {searchTerm ? (
+                {isFilterActive ? (
                   <>
                     <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -622,12 +772,12 @@ const ExpensePage = () => {
                       </svg>
                     </div>
                     <h4 className="text-lg font-medium text-gray-800 mb-2">No expenses found</h4>
-                    <p className="text-gray-600 mb-4">No expenses match your search for "{searchTerm}"</p>
+                    <p className="text-gray-600 mb-4">No expenses match your current filters</p>
                     <button
-                      onClick={clearSearch}
+                      onClick={clearAllFilters}
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
-                      Clear Search
+                      Clear Filters
                     </button>
                   </>
                 ) : (
