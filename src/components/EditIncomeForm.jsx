@@ -145,7 +145,7 @@ const EditIncomeForm = ({ income, onClose, onUpdateIncome }) => {
   const hasErrors = Object.keys(errors).length > 0;
 
   return (
-    <div className="edit-income-form-container">
+    <div className="h-full edit-income-form-container">
       <div className="edit-income-form">
         <div className="form-header">
           <h2 className="form-title">Edit Income</h2>

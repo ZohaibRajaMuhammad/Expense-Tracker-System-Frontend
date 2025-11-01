@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 
 const IncomePage = () => {
   const [incomes, setIncomes] = useState([]);
+  const [filteredIncomes, setFilteredIncomes] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState(null);
@@ -56,6 +58,21 @@ const IncomePage = () => {
       navigate('/login');
     }
   }, [navigate]);
+
+  // Filter incomes based on search term
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredIncomes(incomes);
+    } else {
+      const filtered = incomes.filter(income =>
+        income.source?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        income.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        income.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        income.amount?.toString().includes(searchTerm)
+      );
+      setFilteredIncomes(filtered);
+    }
+  }, [incomes, searchTerm]);
   
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -114,11 +131,13 @@ const IncomePage = () => {
       );
       
       setIncomes(filteredIncomes);
+      setFilteredIncomes(filteredIncomes);
       
     } catch (error) {
       console.error('Error fetching incomes:', error);
       setError('Failed to load income data. Please try again.');
       setIncomes([]);
+      setFilteredIncomes([]);
     } finally {
       setLoading(false);
     }
@@ -278,13 +297,15 @@ const IncomePage = () => {
   };
   
   const downloadIncomesAsExcel = () => {
-    if (incomes.length === 0) {
+    const dataToDownload = searchTerm ? filteredIncomes : incomes;
+    
+    if (dataToDownload.length === 0) {
       setError('No income data available to download');
       return;
     }
 
     try {
-      const ws = XLSX.utils.json_to_sheet(incomes.map(income => ({
+      const ws = XLSX.utils.json_to_sheet(dataToDownload.map(income => ({
         Source: income.source,
         Amount: income.amount,
         Date: new Date(income.date).toLocaleDateString(),
@@ -295,7 +316,11 @@ const IncomePage = () => {
       XLSX.utils.book_append_sheet(wb, ws, "Incomes");
       
       const userName = user?.firstName || 'user';
-      XLSX.writeFile(wb, `income_data_${userName}.xlsx`);
+      const fileName = searchTerm ? 
+        `income_data_${searchTerm}_${userName}.xlsx` : 
+        `income_data_${userName}.xlsx`;
+      
+      XLSX.writeFile(wb, fileName);
     } catch (error) {
       console.error('Error downloading Excel:', error);
       setError('Failed to download income data');
@@ -303,6 +328,7 @@ const IncomePage = () => {
   };
 
   const totalIncome = incomes.reduce((sum, income) => sum + (income.amount || 0), 0);
+  const filteredTotalIncome = filteredIncomes.reduce((sum, income) => sum + (income.amount || 0), 0);
 
   const getDisplayName = () => {
     if (!user) return '';
@@ -326,6 +352,14 @@ const IncomePage = () => {
                incomeDate.getFullYear() === now.getFullYear();
       })
       .reduce((sum, inc) => sum + (inc.amount || 0), 0);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
   };
 
   if (loading && !isEditModalOpen) {
@@ -387,13 +421,47 @@ const IncomePage = () => {
         </div>
       )}
 
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search by source, category, description, or amount..."
+            className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          {searchTerm && (
+            <button
+              onClick={clearSearch}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+        {searchTerm && (
+          <p className="text-sm text-gray-600 mt-2">
+            Showing {filteredIncomes.length} of {incomes.length} income sources
+            {filteredIncomes.length > 0 && ` • Filtered total: $${filteredTotalIncome.toLocaleString()}`}
+          </p>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Income Chart */}
         <div className="lg:col-span-1 p-6 bg-white rounded-xl shadow-lg">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Income Overview</h3>
-          {incomes.length > 0 ? (
+          {(incomes.length > 0 && filteredIncomes.length > 0) ? (
             <IncomeChart 
-              data={incomes.map(inc => ({ 
+              data={filteredIncomes.map(inc => ({ 
                 date: new Date(inc.date).toLocaleDateString(), 
                 amount: inc.amount,
                 source: inc.source 
@@ -404,9 +472,11 @@ const IncomePage = () => {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📊</span>
               </div>
-              <p className="text-gray-500">No data available for chart</p>
+              <p className="text-gray-500">
+                {searchTerm ? 'No matching income sources found' : 'No data available for chart'}
+              </p>
               <p className="text-sm text-gray-400 mt-1">
-                Add income sources to see visualization
+                {searchTerm ? 'Try adjusting your search terms' : 'Add income sources to see visualization'}
               </p>
             </div>
           )}
@@ -417,13 +487,14 @@ const IncomePage = () => {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Income Sources</h3>
             <span className="text-sm text-gray-500">
-              {incomes.length} source{incomes.length !== 1 ? 's' : ''}
+              {filteredIncomes.length} source{filteredIncomes.length !== 1 ? 's' : ''}
+              {searchTerm && ` (of ${incomes.length})`}
             </span>
           </div>
           
           <div className="space-y-4 max-h-96 overflow-y-auto">
-            {incomes.length > 0 ? (
-              incomes.map(income => (
+            {filteredIncomes.length > 0 ? (
+              filteredIncomes.map(income => (
                 <IncomeSourceItem 
                   key={income._id} 
                   income={income} 
@@ -436,16 +507,28 @@ const IncomePage = () => {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">💰</span>
                 </div>
-                <p className="text-gray-500 mb-2">No income sources yet</p>
-                <p className="text-sm text-gray-400">
-                  Add your first income source to get started
+                <p className="text-gray-500 mb-2">
+                  {searchTerm ? 'No income sources found' : 'No income sources yet'}
                 </p>
-                <button 
-                  onClick={() => setIsModalOpen(true)}
-                  className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                >
-                  + Add Income Source
-                </button>
+                <p className="text-sm text-gray-400">
+                  {searchTerm ? 'Try different search terms' : 'Add your first income source to get started'}
+                </p>
+                {!searchTerm && (
+                  <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                  >
+                    + Add Income Source
+                  </button>
+                )}
+                {searchTerm && (
+                  <button 
+                    onClick={clearSearch}
+                    className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                  >
+                    Clear Search
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -454,21 +537,27 @@ const IncomePage = () => {
 
       {/* Statistics */}
       {incomes.length > 0 && (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-600">Total Sources</p>
-            <p className="text-2xl font-bold text-gray-800">{incomes.length}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-600">Average Income</p>
+            <p className="text-sm text-gray-600">
+              {searchTerm ? 'Filtered Sources' : 'Total Sources'}
+            </p>
             <p className="text-2xl font-bold text-gray-800">
-              ${Math.round(totalIncome / Math.max(incomes.length, 1)).toLocaleString()}
+              {searchTerm ? filteredIncomes.length : incomes.length}
+              {searchTerm && <span className="text-sm font-normal text-gray-500 ml-1">/ {incomes.length}</span>}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-600">This Month</p>
+            <p className="text-sm text-gray-600">
+              {searchTerm ? 'Filtered Total' : 'Total Income'}
+            </p>
             <p className="text-2xl font-bold text-gray-800">
-              ${getCurrentMonthIncome().toLocaleString()}
+              ${(searchTerm ? filteredTotalIncome : totalIncome).toLocaleString()}
+              {searchTerm && totalIncome !== filteredTotalIncome && (
+                <span className="text-sm font-normal text-gray-500 ml-1">
+                  of ${totalIncome.toLocaleString()}
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -486,13 +575,13 @@ const IncomePage = () => {
 
       {/* Edit Income Modal */}
       {isEditModalOpen && editingIncome && (
-        <Modal onClose={handleCloseEditModal}>
+        // <Modal onClose={handleCloseEditModal}>
           <EditIncomeForm 
             income={editingIncome}
             onClose={handleCloseEditModal}
             onUpdateIncome={handleUpdateIncome}
           />
-        </Modal>
+        // </Modal>
       )}
     </div>
   );

@@ -460,7 +460,7 @@ const ProfilePage = () => {
           <div className="flex justify-center sm:justify-end space-x-2">
             {usingLocalData && (
               <span className="px-3 py-2 text-xs bg-yellow-100 text-yellow-800 rounded-md flex items-center">
-                🔄 Offline Mode
+                 Offline Mode
               </span>
             )}
             <button
@@ -566,13 +566,13 @@ const ProfilePage = () => {
                     <Mail className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm break-all">{getUserEmail()}</span>
                   </div>
-                  <div className="flex items-center justify-center xs:justify-start space-x-2 text-purple-100 text-xs">
+                  {/* <div className="flex items-center justify-center xs:justify-start space-x-2 text-purple-100 text-xs">
                     <Shield className="w-3 h-3 flex-shrink-0" />
                     <span className="font-mono">ID: {getUserId().substring(0, 8)}...</span>
                     {usingLocalData && (
                       <span className="bg-yellow-500 text-white px-2 py-1 rounded text-xs">Local</span>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -605,20 +605,10 @@ const ProfilePage = () => {
 
               {/* Account Information */}
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                  Account Information
-                </h2>
+                
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-500 flex items-center">
-                      <Shield className="w-4 h-4 mr-2 flex-shrink-0" />
-                      User ID
-                    </label>
-                    <p className="text-gray-900 font-medium font-mono text-xs sm:text-sm bg-gray-50 px-3 py-2 rounded border break-all">
-                      {getUserId()}
-                    </p>
-                  </div>
+                  
 
                   <div className="space-y-1">
                     <label className="block text-sm font-medium text-gray-500 flex items-center">
@@ -632,25 +622,7 @@ const ProfilePage = () => {
                 </div>
               </div>
 
-              {/* Data Source Information */}
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                  Data Source
-                </h2>
-                <div className="space-y-1">
-                  <label className="block text-sm font-medium text-gray-500">
-                    Current Data Source
-                  </label>
-                  <p className="text-gray-900 font-medium text-sm">
-                    {usingLocalData ? '📱 Locally Stored Data' : '🌐 Live Server Data'}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {usingLocalData 
-                      ? 'Showing data from your local storage. Some information might be outdated.' 
-                      : 'Connected to server with live data.'}
-                  </p>
-                </div>
-              </div>
+              
             </div>
 
             {/* Footer */}
@@ -660,11 +632,7 @@ const ProfilePage = () => {
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <span>Last updated: {new Date().toLocaleDateString()}</span>
                 </div>
-                <div className="text-center sm:text-right">
-                  <span className="font-mono">
-                    {usingLocalData ? '📱 Local' : '🌐 Live'} • ID: {getUserId().substring(0, 8)}...
-                  </span>
-                </div>
+                
               </div>
             </div>
           </div>

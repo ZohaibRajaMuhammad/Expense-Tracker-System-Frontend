@@ -563,24 +563,31 @@ const InsightItem = ({ title, value, description, positive }) => {
 };
 
 const EmptyDashboardState = () => (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-    <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-      <FaWallet className="text-purple-500 text-2xl" />
-    </div>
-    <h3 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Your Dashboard!</h3>
-    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-      Start tracking your finances by adding your first income and expense transactions.
-      Your dashboard will show insightful charts and statistics here.
-    </p>
-    <div className="flex justify-center space-x-4">
-      <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 font-medium">
-        Add Income
-      </button>
-      <button className="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium">
-        Add Expense
-      </button>
-    </div>
+  
+<div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+  <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+    <FaWallet className="text-purple-500 text-2xl" />
   </div>
+  <h3 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Your Dashboard!</h3>
+  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+    Start tracking your finances by adding your first income and expense transactions.
+    Your dashboard will show insightful charts and statistics here.
+  </p>
+  <div className="flex justify-center space-x-4">
+    <Link 
+      to="/income" 
+      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 font-medium"
+    >
+      Add Income
+    </Link>
+    <Link 
+      to="/expenses" 
+      className="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium"
+    >
+      Add Expense
+    </Link>
+  </div>
+</div>
 );
 
 // Helper Functions
